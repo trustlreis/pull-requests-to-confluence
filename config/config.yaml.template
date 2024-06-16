@@ -1,0 +1,14 @@
+github:
+  token: 'YOUR_GITHUB_TOKEN'
+  query: 'is:open is:pr review-requested:username review-requested:anotherusername archived:false'
+  url: 'https://api.github.com/search/issues?q={query}&sort=created&order=asc'
+  headers:
+    Accept: 'application/vnd.github.v3+json'
+
+confluence:
+  base_url: 'https://yourconfluence.atlassian.net/wiki'
+  space_key: 'YOUR_SPACE_KEY'
+  parent_page_id: 'YOUR_PARENT_PAGE_ID'  # Optional
+  auth:
+    user: 'YOUR_CONFLUENCE_USER'
+    token: 'YOUR_CONFLUENCE_API_TOKEN'
