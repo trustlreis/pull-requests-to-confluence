@@ -124,9 +124,11 @@ Ensure these dependencies are installed within the Docker container by specifyin
 
 ## Usage
 
-1. **Configure GitHub and Confluence settings**: Copy `config/config.yaml.template` to `config/config.yaml` and update this file with your GitHub and Confluence credentials and settings.
-2. **Build the Docker image**: Run `docker build -t fetch_pull_requests .`.
-3. **Run the Docker container**: Execute `docker run -d --name fetch_pull_requests_container fetch_pull_requests`.
+* **Configure GitHub and Confluence settings**: 
+  * Copy `config/config.yaml.template` to `config/config.yaml` and update this file with your GitHub and Confluence credentials and settings.
+  * Copy `template/pull-requests.html.template` to `template/pull-requests.html` with your custom HTML to list pull-requests.
+* **Build the Docker image**: Run `docker build -t fetch_pull_requests .`.
+* **Run the Docker container**: Execute `docker run -d --name fetch_pull_requests_container fetch_pull_requests`.
 
 The script will automatically fetch open pull requests, render them into HTML, and publish the content to Confluence according to the specified cron schedule.
 
