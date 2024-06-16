@@ -1,0 +1,23 @@
+<table>
+    <tr>
+        <th>💬 PR</th>
+        <th>📚 Title</th>
+        <th>🏷️ Labels</th>
+        <th>🗓️ Created at</th>
+        <th>🤷‍ Author</th>
+    </tr>
+    {% for pr in pull_requests %}
+    <tr>
+        <td><a href="{{ pr.html_url }}">{{ pr.number }}</a></td>
+        <td>{{ pr.title }}</td>
+        <td>
+            {% for label in pr.labels %}
+            <pre>{{ label.name }}</pre>
+            {% endfor %}
+        </td>
+        <td>{{ pr.created_at }}</td>
+        <td>{{ pr.user.login }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
