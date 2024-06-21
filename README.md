@@ -1,140 +1,174 @@
-# Fetch and Publish GitHub Pull Requests
+# Pull Requests to Confluence
 
 This repository contains a Python script designed to automate the process of retrieving open pull requests from a GitHub repository and publishing the details to a Confluence page. The script leverages the GitHub and Confluence APIs to seamlessly integrate these platforms, ensuring that your team stays updated with the latest pull requests.
-
-## Features
-
-* **Automated Retrieval**: Fetch open pull requests from your specified GitHub repository.
-* **HTML Rendering**: Use Jinja2 templates to render the pull request details into an HTML format.
-* **Confluence Publishing**: Automatically publish the rendered HTML content to a specified Confluence page.
-* **Scheduled Execution**: Use cron jobs to schedule the script to run at specified intervals.
-
-## Requirements
-
-* Python 3.9+
-* GitHub Personal Access Token
-* Confluence API Token
-* Docker to deploy the scheduler
 
 ## Project Structure
 
 ```
-.
-├── config
+pull-requests-to-confluence/
+├── config/
 │   └── config.yaml.template
-├── docker
-│   ├── crontab
-│   └── entrypoint.sh
-├── template
-│   └── pull-requests.html
-├── .gitignore
+├── templates/
+│   └── pull-requests.html.template
 ├── Dockerfile
+├── docker/
+│   ├── entrypoint.sh
+│   ├── run.sh
+│   └── crontab
 ├── main.py
 ├── requirements.txt
-└── README.md
+└── pull_request_counts.csv
 ```
 
-## Configuration
+- `config/config.yaml.template`: Template configuration file to be copied and customized with your GitHub and Confluence parameters.
+- `templates/pull-requests.html.template`: Template for the HTML content, to be copied and customized.
+- `Dockerfile`: Instructions to build the Docker image.
+- `docker/`: Directory containing Docker-related files.
+  - `entrypoint.sh`: Script to set up and run the container.
+  - `run.sh`: Bash script to run the Python script, designed to be called from crontab.
+  - `crontab`: File containing cron job definitions for scheduling the script.
+- `main.py`: Main script that fetches pull requests and publishes them to Confluence.
+- `requirements.txt`: List of dependencies required for the project.
+- `pull_request_counts.csv`: CSV file tracking the number of open pull requests by date.
 
-### config.yaml
+## Installation
 
-The `config/config.yaml` file contains configuration for GitHub and Confluence:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/trustlreis/pull-requests-to-confluence.git
+   cd pull-requests-to-confluence
+   ```
 
-```yaml
-github:
-  token: 'YOUR_GITHUB_TOKEN'
-  query: 'is:open is:pr review-requested:username review-requested:anotherusername archived:false'
-  url: 'https://api.github.com/search/issues?q={query}&sort=created&order=asc'
-  headers:
-    Accept: 'application/vnd.github.v3+json'
+2. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-confluence:
-  base_url: 'https://yourconfluence.atlassian.net/wiki'
-  space_key: 'YOUR_SPACE_KEY'
-  parent_page_id: 'YOUR_PARENT_PAGE_ID'  # Optional
-  auth:
-    user: 'YOUR_CONFLUENCE_USER'
-    token: 'YOUR_CONFLUENCE_API_TOKEN'
-```
+3. Copy the template configuration and HTML files to customize:
+   ```bash
+   cp config/config.yaml.template config/config.yaml
+   cp templates/pull-requests.html.template templates/pull-requests.html
+   ```
 
-### template.html
-
-The `template/pull-requests.html` file contains the HTML template for rendering the pull requests.
-
-### crontab
-
-The `docker/crontab` file specifies the cron schedule:
-
-```cron
-# ┌────────────── minute (0 - 59)
-# │ ┌──────────── hour (0 - 23)
-# │ │ ┌────────── day of the month (1 - 31)
-# │ │ │ ┌──────── month (1 - 12)
-# │ │ │ │ ┌────── day of the week (0 - 6) (Sunday to Saturday)
-# │ │ │ │ │
-# │ │ │ │ │
-  0 8,10,13,15,17 * * 1-5 /usr/local/bin/python /app/main.py >> /var/log/cron.log 2>&1
-```
-
-### entrypoint.sh
-
-The `docker/entrypoint.sh` script starts the cron service and keeps the container running:
-
-```sh
-#!/bin/bash
-
-# Start the cron service
-service cron start
-
-# Tail the cron log to keep the container running
-tail -f /var/log/cron.log
-```
-
-## Docker Setup
-
-### Building the Docker Image
-
-To build the Docker image, run the following command from the project root directory:
-
-```sh
-docker build -t fetch_pull_requests .
-```
-
-### Running the Docker Container
-
-To run the Docker container, execute the following command:
-
-```sh
-docker run -d --name fetch_pull_requests_container fetch_pull_requests
-```
-
-This will start a Docker container that uses cron to run the `fetch_and_publish.py` script at 8am, 10am, 1pm, 3pm, and 5pm every Monday through Friday. The output will be logged to `/var/log/cron.log` inside the container.
-
-## Dependencies
-
-The `requirements.txt` file lists the Python dependencies:
-
-```text
-requests
-jinja2
-pyyaml
-```
-
-Ensure these dependencies are installed within the Docker container by specifying them in the `requirements.txt` file.
+4. Update `config/config.yaml` with your GitHub and Confluence credentials and settings.
 
 ## Usage
 
-* **Configure GitHub and Confluence settings**: 
-  * Copy `config/config.yaml.template` to `config/config.yaml` and update this file with your GitHub and Confluence credentials and settings.
-  * Copy `template/pull-requests.html.template` to `template/pull-requests.html` with your custom HTML to list pull-requests.
-* **Build the Docker image**: Run `docker build -t fetch_pull_requests .`.
-* **Run the Docker container**: Execute `docker run -d --name fetch_pull_requests_container fetch_pull_requests`.
+Run the script:
+```bash
+python main.py
+```
 
-The script will automatically fetch open pull requests, render them into HTML, and publish the content to Confluence according to the specified cron schedule.
+This will fetch the open pull requests from the specified GitHub repository and publish them to the specified Confluence page, along with the generated charts.
+
+## Docker
+
+### Building the Docker Image
+
+1. Navigate to the project directory:
+   ```bash
+   cd pull-requests-to-confluence
+   ```
+
+2. Build the Docker image:
+   ```bash
+   docker build -t pull-requests-to-confluence .
+   ```
+
+### Running the Docker Container
+
+To run the container as a daemon with automatic restart:
+
+1. Run the container:
+   ```bash
+   docker run -d --restart unless-stopped pull-requests-to-confluence
+   ```
+
+### Docker Files
+
+- `Dockerfile`: Contains instructions to build the Docker image, including installing dependencies and copying project files.
+- `docker/entrypoint.sh`: Shell script to set up and run the application inside the container.
+- `docker/run.sh`: Bash script to run the Python script. This is designed to be scheduled via `crontab` for periodic execution.
+- `docker/crontab`: Contains cron job definitions to schedule the script execution.
+
+### Dockerfile Details
+
+The `Dockerfile` sets up the environment to run the Python script on a schedule using cron:
+
+```dockerfile
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED 1
+
+# Create a working directory
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install system dependencies for cron
+RUN apt-get update && apt-get install -y cron
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the crontab file into the cron.d directory
+COPY docker/run.sh /usr/local/bin/fetch_pull_requests
+COPY docker/crontab /etc/cron.d/fetch_pull_requests
+
+# Give execution rights on the cron job
+RUN chmod 0644 /etc/cron.d/fetch_pull_requests
+RUN chmod 0755 /usr/local/bin/fetch_pull_requests
+
+# Apply the cron job
+RUN crontab /etc/cron.d/fetch_pull_requests
+
+# Create the entrypoint script
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Run the command on container startup
+CMD ["/entrypoint.sh"]
+```
+
+### Scheduling with Cron
+
+To schedule the script using cron:
+
+1. Open the crontab configuration:
+   ```bash
+   crontab -e
+   ```
+
+2. Add the following cron job definitions to schedule the script to run 6 times per day on business weekdays:
+   ```
+   # ┌────────────── minute (0 - 59)
+   # │ ┌──────────── hour (0 - 23)
+   # │ │ ┌────────── day of the month (1 - 31)
+   # │ │ │ ┌──────── month (1 - 12)
+   # │ │ │ │ ┌────── day of the week (0 - 6) (Sunday to Saturday)
+   # │ │ │ │ │
+   # │ │ │ │ │
+   0 11,13,16,18,20 * * 1-5 /usr/local/bin/fetch_pull_requests # image is running in UTC
+   ```
+
+   The image runs in the UTC time zone. Below is a table converting the schedule to BRT (UTC-3):
+
+   | UTC Time | BRT Time (UTC-3) |
+   |----------|------------------|
+   | 11:00    | 08:00            |
+   | 13:00    | 10:00            |
+   | 16:00    | 13:00            |
+   | 18:00    | 15:00            |
+   | 20:00    | 17:00            |
+
+3. To list the current cron jobs scheduled, use:
+   ```bash
+   crontab -l
+   ```
 
 ## License
 
 This project is licensed under the MIT License.
-```
-
-This `README.md` file provides a comprehensive overview of the project, including the directory structure, configuration details, and instructions for building and running the Docker container. Adjust the placeholders in the configuration section with your actual credentials and settings.
