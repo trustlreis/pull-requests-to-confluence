@@ -3,6 +3,8 @@
 <img src="data:image/png;base64,{{ open_pr_chart_base64 }}" alt="Open Pull Requests Over Time">
 <h2>Pull Requests Grouped by Label Size</h2>
 <img src="data:image/png;base64,{{ pr_size_chart_base64 }}" alt="Pull Requests Grouped by Label Size">
+<h1>GitHub Filter</h1>
+<pre>{{ gh_query }}</pre>
 <h1>Open Pull Requests ({{ pull_request_count }})</h1>
 <table>
     <tr>

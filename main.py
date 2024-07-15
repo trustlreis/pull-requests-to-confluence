@@ -70,7 +70,7 @@ def filter_last_15_days(data_frame):
     return filtered_df
 
 
-def render_html(pull_requests, pull_request_count, open_pr_chart_base64, pr_size_chart_base64):
+def render_html(pull_requests, pull_request_count, open_pr_chart_base64, pr_size_chart_base64, gh_query):
     template_dir = os.path.dirname(os.path.abspath(__file__))
     env = Environment(loader=FileSystemLoader(template_dir))
     template = env.get_template('templates/pull-requests.html')
@@ -78,7 +78,8 @@ def render_html(pull_requests, pull_request_count, open_pr_chart_base64, pr_size
         pull_requests=pull_requests,
         pull_request_count=pull_request_count,
         open_pr_chart_base64=open_pr_chart_base64,
-        pr_size_chart_base64=pr_size_chart_base64
+        pr_size_chart_base64=pr_size_chart_base64,
+        gh_query=gh_query
     )
 
 
@@ -189,5 +190,5 @@ if __name__ == '__main__':
     if pull_requests:
         pull_request_count = len(pull_requests)
         open_pr_chart_base64, pr_size_chart_base64 = create_charts(pull_requests)
-        html_content = render_html(pull_requests, pull_request_count, open_pr_chart_base64, pr_size_chart_base64)
+        html_content = render_html(pull_requests, pull_request_count, open_pr_chart_base64, pr_size_chart_base64, github_query)
         publish_to_confluence(html_content, 'Open Pull Requests')
